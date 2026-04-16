@@ -1,0 +1,69 @@
+select * from raw limit 10;
+
+#1. Which categories have the most products?
+select category, count (*) as total_products
+from raw
+group by category
+order by total_products desc;
+
+#2. Which products are out of stock?
+select name, category from raw
+where outofstock = true;
+
+#3. What is the average selling price per category?
+select category, round(avg(discountedsellingprice),2) as avg_selling_price
+from raw
+group by category
+order by avg_selling_price;
+
+#4. Which products have the highest discounts?
+select name, discountpercent
+from raw
+order by discountpercent desc
+limit 15;
+
+#5. Which categories have low stock levels?
+select category, sum(availablequantity) as total_stock
+from raw
+group by category
+order by total_stock;
+
+#6. Which categories have highest total inventory value?
+select category, sum(discountedsellingprice*availablequantity) as total_value
+from raw
+group by category
+order by total_value desc;
+
+#7. Revenue Leakage Opportunity
+-- How much revenue are we losing due to stockouts?
+SELECT category,
+       COUNT(*) AS out_of_stock_products,
+       round(AVG(discountedsellingprice), 2) AS avg_price,
+       round(COUNT(*) * AVG(discountedsellingprice), 2) AS potential_loss
+FROM raw
+WHERE outofstock = true
+GROUP BY category
+ORDER BY potential_loss DESC;
+
+-- Stockout Risk
+SELECT name, category, availablequantity
+FROM raw
+WHERE availablequantity < 10 AND outofstock = false;
+
+-- Inventory Value
+SELECT category,
+       SUM(discountedsellingprice * availablequantity) AS total_value
+FROM raw
+GROUP BY category;
+
+#Which products are over-discounted?
+SELECT name, category, mrp, discountpercent, discountedsellingprice
+FROM raw
+WHERE discountpercent > 40
+  AND discountedsellingprice < 100
+ORDER BY discountpercent DESC;
+
+
+
+
+
